@@ -11,11 +11,16 @@ import { Scrollbars } from 'react-custom-scrollbars-2';
 import mindmaptotodo from './tutorial.png';
 import Fab from '@mui/material/Fab';
 import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
+import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
 import { paperClasses } from '@mui/material';
 import hotkeys from 'hotkeys-js';
 import { Box, ChakraProvider } from "@chakra-ui/react";
+import Swal from 'sweetalert2';
 
 var mindstring = '';
+
+var searchOptions = [];
 
 let datajson = '';
 
@@ -93,12 +98,12 @@ function App() {
         });
     
         mind.bus.addListener('operation', operation => {
-    
+          
           mindstring = mind.getAllData();
-    
+
           //เพิ่ม tags Todo
           if (operation.obj.hasOwnProperty('tags') ) { //ตัวมันเองคือ todo title
-            if ( operation.name == 'editTags' || operation.name == 'removeNode' || operation.name == 'finishEdit') {
+            if ( operation.name === 'editTags' || operation.name === 'removeNode' || operation.name === 'finishEdit') {
               if ( operation.obj.tags.includes('Todo') || operation.origin.includes('Todo') ) {
                 console.log(operation);
                 console.log("====Todo Title trigger====")
@@ -111,7 +116,7 @@ function App() {
               }
             }
           } else if ( !operation.obj.hasOwnProperty('root') && operation.obj.parent.hasOwnProperty('tags') ) { //ตัวมันคือ desc พ่อเป็น todo title
-            if ( operation.name == 'removeNode' || operation.name == 'finishEdit' ) {
+            if ( operation.name === 'removeNode' || operation.name === 'finishEdit' ) {
               if ( operation.obj.parent.tags.includes('Todo') ) {
                 console.log(operation);
                 console.log("====Todo Desc trigger====")
@@ -151,7 +156,7 @@ function App() {
       TodoListDataService.getAll()
       .then(response =>{
         
-        if(!(JSON.stringify(response.data) == JSON.stringify(dbMindmap)) && selectnode == undefined && updateCheck == false){
+        if(!(JSON.stringify(response.data) === JSON.stringify(dbMindmap)) && selectnode === undefined && updateCheck === false){
           console.log('update Mindmap');
           console.log(response.data)
           dbMindmap = response.data;
@@ -171,7 +176,7 @@ function App() {
 
   //Import ไฟล์ JSON แล้ว convert เป็น mindmap
   const importData = (datajson) => {
-
+    console.log("importJSON");
     updateCheck = true; //ยังไม่ให้อัพเดท db ขณะ import ไฟล์ใหม่
 
     var obj = JSON.parse(datajson);
@@ -230,7 +235,6 @@ function App() {
 
     mind.initSide();
     mind.getAllDataString();
-
     mindstring = mind.getAllData();
 
     //////////////////อัพเดท db ตามไฟล์ที่ import ทันที///////////
@@ -255,7 +259,7 @@ function App() {
 
       //เพิ่ม tags Todo
       if (operation.obj.hasOwnProperty('tags') ) { //ตัวมันเองคือ todo title
-        if ( operation.name == 'editTags' || operation.name == 'removeNode' || operation.name == 'finishEdit') {
+        if ( operation.name === 'editTags' || operation.name === 'removeNode' || operation.name === 'finishEdit') {
           if ( operation.obj.tags.includes('Todo') || operation.origin.includes('Todo') ) {
             console.log(operation);
             console.log("====Todo Title trigger====")
@@ -268,7 +272,7 @@ function App() {
           }
         }
       } else if ( !operation.obj.hasOwnProperty('root') && operation.obj.parent.hasOwnProperty('tags') ) { //ตัวมันคือ desc พ่อเป็น todo title
-        if ( operation.name == 'removeNode' || operation.name == 'finishEdit' ) {
+        if ( operation.name === 'removeNode' || operation.name === 'finishEdit' ) {
           if ( operation.obj.parent.tags.includes('Todo') ) {
             console.log(operation);
             console.log("====Todo Desc trigger====")
@@ -310,7 +314,7 @@ function App() {
             });
         }
         console.log('wait 2 seconds')
-        setTimeout(() => { console.log('wait done');
+        setTimeout(() => { console.log('done');
 
           TodoListDataService.getAll()
             .then(response => {
@@ -379,8 +383,8 @@ function App() {
 
       if ( obj.children[i].hasOwnProperty('tags') ) {
         for ( var j = 0 ; j < obj.children[i].tags.length ; j++) {
-          if ( obj.children[i].tags[j] == 'Todo' ) {
-            if ( !obj.children[i].hasOwnProperty('children') || obj.children[i].children.length == 0){  //ถ้าไม่มีลูกต่อ (Desc) ให้สร้างรายการเลย
+          if ( obj.children[i].tags[j] === 'Todo' ) {
+            if ( !obj.children[i].hasOwnProperty('children') || obj.children[i].children.length === 0){  //ถ้าไม่มีลูกต่อ (Desc) ให้สร้างรายการเลย
 
               var tododata = 
               {
@@ -422,7 +426,9 @@ function App() {
     const fileReader = new FileReader();
     fileReader.readAsText(e.target.files[0], "UTF-8");
     fileReader.onload = e => {
-      console.log("e.target.result", e.target.result);
+      console.log("readJSON file")
+      console.log(e.target.result)
+      //console.log("e.target.result", e.target.result);
       datajson = e.target.result;
       importData(datajson);
     };
@@ -446,8 +452,13 @@ function App() {
   const searchNode = (e) => {
     e.preventDefault();
 
-    if (searchString == ''){ //ไม่ใส่อะไรในช่องเซิช
-      window.alert('Type something!')
+    if (searchString === ''){ //ไม่ใส่อะไรในช่องเซิช
+      Swal.fire({
+        title : 'Alert',
+        text : 'Please fill in the search',
+        icon : 'warning',
+        timer : 2500,
+      })
       searchTemp = '';
       return;
     }
@@ -459,9 +470,9 @@ function App() {
     }
 
     console.log(retrieveId);
-    var allMind = mind.getAllData();
+    let allMind = mind.getAllData();
 
-    if (foundId == false && lastIdCheck == false){ //เริ่มเซิชใหม่
+    if (foundId === false && lastIdCheck === false){ //เริ่มเซิชใหม่
       console.log('เริ่มเซิชใหม่')
       retrieveId = [];
       searchData(allMind.nodeData,searchString);
@@ -469,9 +480,15 @@ function App() {
       console.log(retrieveId);
     }
 
-    if (foundId == false){ //ไม่เจอเลย
-      window.alert(searchString + ' not found.')
+    if (foundId === false){ //ไม่เจอเลย
+      Swal.fire({
+        title : 'Are you sure?',
+        text : searchString + ' not found',
+        icon : 'question',
+        timer : 2500,
+      })
       lastIdCheck = false;
+      searchString = '';
     } else { //เจออยู่ก็ไปหาโนดนั้นๆ
 
       mind.selectNode(E(retrieveId[0]))
@@ -515,26 +532,6 @@ function App() {
       }
 
       goToNode(widthNum,heightNum)
-
-      if (retrieveId.length > 2){ //มากกว่า 2
-        retrieveId.shift();
-        console.log('มากกว่า 2');
-        foundId = true;
-        lastIdCheck = false;
-        console.log(foundId,lastIdCheck)
-      } else if (retrieveId.length == 2){ //ตัวรองท้าย
-        retrieveId.shift();
-        console.log('ตัวรองท้าย');
-        foundId = true;
-        lastIdCheck = true;
-        console.log(foundId,lastIdCheck)
-      } else { //ตัวสุดท้าย == 1 ตัดจบ
-        retrieveId.shift();
-        console.log('ตัวท้าย เริ่มใหม่');
-        lastIdCheck = false;
-        foundId = false;
-        console.log(foundId,lastIdCheck)
-      }
     }
   }
 
@@ -578,58 +575,118 @@ function App() {
   }
 
   const handleChange = (event) => {
-    searchString =  event.target.value;
-    //console.log(searchString)
+    if(event.target.value === undefined) {
+      searchString = '';
+    }
+    else{
+      searchString = event.target.value;
+    }
+    console.log("handleChange : " + searchString);
   }
+
+  const handleOnChange = (e, value) => {
+    if(value === null) {
+      searchString = '';
+    }
+    else{
+      searchString = value;
+    }
+    console.log("handleOnChange : " + value);
+  }
+  const createOptions = (mindmapData) => {
+    console.log("Create search options");
+    
+    if (!('children' in mindmapData) || mindmapData.children.length === 0){
+
+      return;
+
+    } else {
+      
+      //console.log(mindmapData.topic);
+      for (var i = 0 ; i < mindmapData.children.length ; i++){       
+        searchOptions.push(mindmapData.children[i].topic)
+      }
+
+      console.log(searchOptions);
+
+      for (var j = 0 ; j < mindmapData.children.length ; j++){
+        createOptions(mindmapData.children[j]);
+      }
+
+    }
+  }
+  
+  const checkOptionsData = () => {
+    TodoListDataService.getAll()
+    .then(response =>{
+      //console.log(response.data);
+      dbMindmap = response.data;
+      let dbjson = databaseToJSON(response.data);
+      mind.nodeData = dbjson.nodeData;
+      console.log(mind.nodeData);
+      searchOptions = createOptions(mind.nodeData);
+      mind.refresh();     
+    })
+  }
+
+  useEffect(() => {
+    console.log("Create options");
+    checkOptionsData();
+  },[]);
 
   return (
     <>
     <div>
       <Form.Group controlId="formFile" className="mb-3">
         <Form.Label>Import JSON File</Form.Label>
-        <Form.Control type="file" onChange={readJSON}/>
+        <Form.Control type="file" onChange={readJSON} style={{width : 500}}/>
       </Form.Group>
-      <div>
-      <form>
-        <input
-          type="text"
-          name="text"
-          placeholder="Search..."
-          //value={searchtext}
-          onChange={handleChange}
-        />
-        <button onClick={(e)=>searchNode(e)}>Search</button>
-      </form>
-    </div>
     </div>
     <div >
-      <Button variant="outline-secondary" onClick={() => paint()}>Export PNG</Button>{' '}
-      <Button variant="outline-success" onClick={() => exportData()}>Export JSON</Button>{' '}
-      {/* <Button variant="outline-success" onClick={() => goToNode()}>search</Button>{' '}   */}
-      <Popup
-        trigger={<Fab
-            sx={{
-              position: "fixed",
-              bottom: (theme) => theme.spacing(2),
-              right: (theme) => theme.spacing(2)
-            }}
-            color="secondary"
-    >
-            <QuestionMarkIcon />
-          </Fab>} modal>
-          <div className='container'>
-            <div style={{fontWeight: 'bold', textAlign: 'center', marginTop: '15px', fontSize: '25px'}}> Create Mindmap for Todo List </div>
-            <div style ={{textAlign: 'center', marginBottom: '15px'}}>
-              <br />
-              การจะ Export Mindmap ไปยัง TodoList นั้น Mindmap จะต้องมีเงื่อนไขดังนี้
-              <br />
-              <img src={mindmaptotodo} style={{height:'400px'}}></img>
-              <br />
-              ลูกของหัวข้อจะเป็น Title รายการ Todo และลูกของ Title นั้นจะเป็น Description ซึ่งเมื่อกดปุ่ม Export ไปยัง Todo App แล้วจะเป็นไปดังภาพ
-              <br />
+      <div className = "button" style={{marginBottom : "10px"}}>
+        <Button variant="outline-secondary" onClick={() => paint()}>Export PNG</Button>{' '}
+        <Button variant="outline-success" onClick={() => exportData()}>Export JSON</Button>{' '}
+      </div>
+      <div  class = "input-group" style = {{marginBottom : "10px"}}>
+        <Autocomplete
+          id = "searchbar"
+          sx = {{ width : 300}}
+          options = {searchOptions}
+          onChange={(e, values) => {handleOnChange(e, values)}}
+          onInputChange = {handleChange}
+          values = {searchString}
+          renderInput = {(params) => <TextField {...params} label = "Search"/>}
+        />
+        <button 
+          id="search-button" 
+          class="btn btn-outline-primary" 
+          onClick={(e)=>searchNode(e)}>
+            Search
+         </button>
+      </div>
+        <Popup
+          trigger={<Fab
+              sx={{
+                position: "fixed",
+                bottom: (theme) => theme.spacing(2),
+                right: (theme) => theme.spacing(2)
+              }}
+              color="secondary">
+            <QuestionMarkIcon/>
+            </Fab>} modal>
+            <div className='container'>
+              <div style={{fontWeight: 'bold', textAlign: 'center', marginTop: '15px', fontSize: '25px'}}> Create Mindmap for Todo List </div>
+              <div style ={{textAlign: 'center', marginBottom: '15px'}}>
+                <br />
+                การจะ Export Mindmap ไปยัง TodoList นั้น Mindmap จะต้องมีเงื่อนไขดังนี้
+                <br />
+                <img src={mindmaptotodo} style={{height:'400px'}}></img>
+                <br />
+                ลูกของหัวข้อจะเป็น Title รายการ Todo และลูกของ Title นั้นจะเป็น Description ซึ่งเมื่อกดปุ่ม Export ไปยัง Todo App แล้วจะเป็นไปดังภาพ
+                <br />
+              </div>
             </div>
-          </div>
-      </Popup>
+        </Popup>
     </div>
     <div id="map" style={{ height: "600px", width: "100%" }} />
     </>

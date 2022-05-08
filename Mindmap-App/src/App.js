@@ -8,7 +8,7 @@ import { Button, Form, InputGroup, FormControl } from 'react-bootstrap';
 import TodoListDataService from "./services/todo.service";
 import Popup from 'reactjs-popup';
 import { Scrollbars } from 'react-custom-scrollbars-2';
-import mindmaptotodo from './tutorial.png';
+import mindmaptotodo from './picture/test.gif';
 import Fab from '@mui/material/Fab';
 import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
 import TextField from '@mui/material/TextField';
@@ -664,29 +664,27 @@ function App() {
             Search
          </button>
       </div>
-        <Popup
-          trigger={<Fab
-              sx={{
-                position: "fixed",
-                bottom: (theme) => theme.spacing(2),
-                right: (theme) => theme.spacing(2)
-              }}
-              color="secondary">
-            <QuestionMarkIcon/>
-            </Fab>} modal>
-            <div className='container'>
-              <div style={{fontWeight: 'bold', textAlign: 'center', marginTop: '15px', fontSize: '25px'}}> Create Mindmap for Todo List </div>
-              <div style ={{textAlign: 'center', marginBottom: '15px'}}>
-                <br />
-                การจะ Export Mindmap ไปยัง TodoList นั้น Mindmap จะต้องมีเงื่อนไขดังนี้
-                <br />
-                <img src={mindmaptotodo} style={{height:'400px'}}></img>
-                <br />
-                ลูกของหัวข้อจะเป็น Title รายการ Todo และลูกของ Title นั้นจะเป็น Description ซึ่งเมื่อกดปุ่ม Export ไปยัง Todo App แล้วจะเป็นไปดังภาพ
-                <br />
-              </div>
+      <Popup
+        trigger={<Fab
+            sx={{
+              position: "fixed",
+              bottom: (theme) => theme.spacing(7),
+              right: (theme) => theme.spacing(2)
+            }}
+            color = "primary"
+    >
+          <QuestionMarkIcon />
+          </Fab>} modal>
+          <div className='container'>
+            <div style={{fontWeight: 'bold', textAlign: 'center', marginTop: '15px', fontSize: '25px'}}> Create Mindmap and link it to Todo application </div>
+            <div style ={{textAlign: 'center', marginBottom: '15px'}}>
+              <br />
+              การจะสร้าง Todolist จาก Mindmap มีขั้นตอนตามตัวอย่างด้านล่าง
+              <br />
+              <img src={mindmaptotodo} style={{height:'400px', margin: '15px'}}></img>
             </div>
-        </Popup>
+          </div>
+      </Popup>
     </div>
     <div id="map" style={{ height: "600px", width: "100%" }} />
     </>
